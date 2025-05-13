@@ -1,0 +1,13 @@
+{
+    "modbus": {
+        "com": "COM8",
+        "baudrate": 4800,
+        "timeout": 0.05
+    },
+    "mqtt": {
+        "broker": "103.175.220.42",
+        "port": 1884,
+        "username": "sbMQTT",
+        "password": "sbMQTT1234"
+    }
+}
