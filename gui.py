@@ -82,6 +82,7 @@ class MainWindow(QMainWindow):
         self.mqtt_layout = QGridLayout()
         self.main_layout.addLayout(self.mqtt_layout)
 
+        # MQTT Connection Section
         self.mqtt_broker_label = QLabel('MQTT Broker:')
         self.mqtt_layout.addWidget(self.mqtt_broker_label, 0, 0)            
         self.mqtt_broker = QLineEdit()
@@ -89,7 +90,6 @@ class MainWindow(QMainWindow):
 
         self.mqtt_port_label = QLabel('MQTT Port:')
         self.mqtt_layout.addWidget(self.mqtt_port_label, 0, 2)
-
         self.mqtt_port = QLineEdit()
         self.mqtt_layout.addWidget(self.mqtt_port, 0, 3)
 
@@ -97,31 +97,46 @@ class MainWindow(QMainWindow):
         self.mqtt_connect_button.clicked.connect(self.connect_mqtt)
         self.mqtt_layout.addWidget(self.mqtt_connect_button, 0, 4)
 
+        # MQTT Message Section
         self.mqtt_topic_label = QLabel('MQTT Topic:')   
         self.mqtt_layout.addWidget(self.mqtt_topic_label, 1, 0)         
-
         self.mqtt_topic = QLineEdit()
-        self.mqtt_layout.addWidget(self.mqtt_topic, 1, 1)   
+        self.mqtt_layout.addWidget(self.mqtt_topic, 1, 1, 1, 2)   
 
         self.mqtt_message_label = QLabel('Message:')   
-        self.mqtt_layout.addWidget(self.mqtt_message_label, 1, 2)         
+        self.mqtt_layout.addWidget(self.mqtt_message_label, 2, 0)         
 
-        self.mqtt_message = QLineEdit()
-        self.mqtt_layout.addWidget(self.mqtt_message, 1, 3)   
+        # Message input and buttons layout
+        self.message_layout = QHBoxLayout()
+        self.mqtt_layout.addLayout(self.message_layout, 2, 1, 1, 4)
 
-        self.mqtt_publish_button = QPushButton('Publish MQTT')
+        self.mqtt_message = QTextEdit()
+        self.mqtt_message.setMaximumHeight(60)
+        self.mqtt_message.setPlaceholderText("Enter your MQTT message here...")
+        self.message_layout.addWidget(self.mqtt_message)
+
+        # Buttons layout
+        self.mqtt_buttons_layout = QVBoxLayout()
+        self.message_layout.addLayout(self.mqtt_buttons_layout)
+
+        self.mqtt_publish_button = QPushButton('Publish')
         self.mqtt_publish_button.clicked.connect(self.publish_mqtt)
-        self.mqtt_layout.addWidget(self.mqtt_publish_button, 1, 4)
+        self.mqtt_buttons_layout.addWidget(self.mqtt_publish_button)
 
-        self.mqtt_subscribe_button = QPushButton('Subscribe MQTT')
+        self.mqtt_subscribe_button = QPushButton('Subscribe')
         self.mqtt_subscribe_button.clicked.connect(self.subscribe_mqtt)
-        self.mqtt_layout.addWidget(self.mqtt_subscribe_button, 1, 3)
+        self.mqtt_buttons_layout.addWidget(self.mqtt_subscribe_button)
 
+        self.clear_data_button = QPushButton('Clear Data')
+        self.clear_data_button.clicked.connect(self.clear_data)
+        self.mqtt_buttons_layout.addWidget(self.clear_data_button)
+
+        # MQTT Data Display Section
         self.mqtt_data_label = QLabel('MQTT Data:')
-        self.mqtt_layout.addWidget(self.mqtt_data_label, 2, 0, 1, 5)
+        self.mqtt_layout.addWidget(self.mqtt_data_label, 3, 0, 1, 5)
 
         self.mqtt_data = QTextEdit()
-        self.mqtt_layout.addWidget(self.mqtt_data, 3, 0, 1, 5)
+        self.mqtt_layout.addWidget(self.mqtt_data, 4, 0, 1, 5)
 
         self.timestamp_checkboxes = QHBoxLayout()
         self.main_layout.addLayout(self.timestamp_checkboxes)
@@ -235,6 +250,32 @@ class MainWindow(QMainWindow):
         """
         self.mqtt_subscribe_button.setStyleSheet(subscribe_style)
 
+
+        # Clear button style (Red theme)
+        clear_style = """
+            QPushButton {
+                background-color: #f44336;
+                color: white;
+                border: none;
+                padding: 2px 4px;
+                text-align: center;
+                text-decoration: none;
+                display: inline-block;
+                font-size: 12px;
+                margin: 2px;
+                cursor: pointer;
+                border-radius: 5px;
+            }
+            QPushButton:hover {
+                background-color: #d32f2f;
+            }
+            QPushButton:pressed {
+                background-color: #c62828;
+            }
+        """
+        # Only apply style to the clear_data_button since clear_message_button was removed
+        self.clear_data_button.setStyleSheet(clear_style)
+
     def read_modbus(self):
         try:
             # Add your modbus read logic here
@@ -269,10 +310,19 @@ class MainWindow(QMainWindow):
             self.mqtt_data.append(error_message)
             QMessageBox.critical(self, "Error", f"Failed to connect to MQTT broker: {str(e)}")
 
+    def clear_message(self):
+        """Clear the MQTT message input field."""
+        self.mqtt_message.clear()
+
+    def clear_data(self):
+        """Clear both MQTT and Modbus data displays."""
+        self.mqtt_data.clear()
+        self.modbus_data.clear()
+
     def publish_mqtt(self):
         try:
             topic = self.mqtt_topic.text()
-            message = self.mqtt_message.text()
+            message = self.mqtt_message.toPlainText()  # Changed from text() to toPlainText()
             if not message:
                 QMessageBox.warning(self, "Warning", "Message is empty, using default 'Test message'")
                 message = "Test message"
